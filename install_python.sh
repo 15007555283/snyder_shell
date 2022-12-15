@@ -114,10 +114,10 @@ Os_Update()
 {
    if [ "$PM" = "apt" ]; then
       apt update -y
-      apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev curl -y
+      apt install wget make build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev curl -y
    elif [ "$PM" = "yum" ]; then
       yum update -y
-      yum install gcc patch libffi-devel python-devel  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel make cmake xz-devel -y
+      yum install wget gcc patch libffi-devel python-devel  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel make cmake xz-devel -y
    fi
 }
 
