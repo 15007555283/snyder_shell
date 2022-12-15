@@ -6,10 +6,8 @@
 Python_Version=$1
 WGET_PATH=/opt
 #Enter the extension directory
-cd $WGET_PATH
-wget -O Python-$Python_Version.tar.xz https://www.python.org/ftp/python/$Python_Version/Python-$Python_Version.tar.xz
-Python_Prefix=${text:0:3}
-Python_Prefix_One=${text:0:1}
+Python_Prefix=${Python_Version:0:3}
+Python_Prefix_One=${Python_Version:0:1}
 Get_OS_Bit()
 {
     if [[ `getconf WORD_BIT` = '32' && `getconf LONG_BIT` = '64' ]] ; then
@@ -33,7 +31,6 @@ Get_OS_Bit()
         fi
     fi
 }
-
 Get_Dist_Name()
 {
     if grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
@@ -108,7 +105,11 @@ Get_Dist_Name()
     fi
     Get_OS_Bit
 }
-
+Get_Python()
+{
+   cd $WGET_PATH
+   wget -O Python-$Python_Version.tar.xz https://www.python.org/ftp/python/$Python_Version/Python-$Python_Version.tar.xz
+}
 Os_Update()
 {
    if [ "$PM" = "apt" ]; then
@@ -116,7 +117,7 @@ Os_Update()
       apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev curl -y
    elif [ "$PM" = "yum" ]; then
       yum update -y
-      yum install gcc patch libffi-devel python-devel  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel -y
+      yum install gcc patch libffi-devel python-devel  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel make cmake xz-devel -y
    fi
 }
 
@@ -125,17 +126,43 @@ Python_Install() {
    tar -xf Python-$Python_Version.tar.xz
    cd Python-$Python_Version
    ./configure --enable-optimizations
-   make && make install
-   ln -s /usr/local/bin/python$Python_Prefix python$Python_Prefix_One
-   ln -s /usr/local/bin/pip$Python_Prefix pip$Python_Prefix_One
-   ln -s /usr/local/bin/python$Python_Prefix python
-   ln -s /usr/local/bin/pip$Python_Prefix pip
+   make -j 12 && make altinstall
+}
+Create_Ln()
+{
+   if [ ! -L /usr/bin/python ];then
+      ln -s /usr/local/bin/python$Python_Prefix /usr/bin/python
+   else
+      rm -rf /usr/bin/python
+      ln -s /usr/local/bin/python$Python_Prefix /usr/bin/python
+   fi
+   if [ ! -L "/usr/bin/python$Python_Prefix_One" ];then
+      ln -s /usr/local/bin/python$Python_Prefix /usr/bin/python$Python_Prefix_One
+   else
+      rm -rf "/usr/bin/python$Python_Prefix_One"
+      ln -s /usr/local/bin/python$Python_Prefix /usr/bin/python3
+   fi
+   if [ ! -L /usr/bin/pip ];then
+      ln -s /usr/local/bin/pip$Python_Prefix /usr/bin/pip
+   else
+      rm -rf "/usr/bin/pip"
+      ln -s /usr/local/bin/pip$Python_Prefix /usr/bin/pip
+   fi
+   if [ ! -L "/usr/bin/pip$Python_Prefix_One" ];then
+      ln -s /usr/local/bin/pip$Python_Prefix /usr/bin/pip$Python_Prefix_One
+   else
+      rm -rf "/usr/bin/pip$Python_Prefix_One"
+      ln -s /usr/local/bin/pip$Python_Prefix /usr/bin/pip3
+   fi
 }
 
+Get_Dist_Name
+Os_Update
+Get_Python
+
 if [ ! -s Python-$Python_Version.tar.xz ];then
-    echo "Python-$Python_Version.tar.xz,资源不存在";
+    echo "Python-$Python_Version.tar.xz";
 else
-   Get_Dist_Name
-   Os_Update
    Python_Install
+   Create_Ln
 fi
